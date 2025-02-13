@@ -59,6 +59,7 @@ namespace FastHotKeyForWPF.Generator
             var hashUsings = GetReferencedNamespaces(Symbol);
             hashUsings.Add("using FastHotKeyForWPF;");
             hashUsings.Add("using System.Windows;");
+            hashUsings.Remove("using System.Windows.Input;");
             foreach (var use in hashUsings)
             {
                 sourceBuilder.AppendLine(use);
@@ -116,7 +117,7 @@ namespace FastHotKeyForWPF.Generator
                              {
                                 GlobalHotKey.Unregister(target.ModifierKeys,(uint)e.OldValue);
                                 GlobalHotKey.Register(target);
-                                target.OnTriggerKeysChanged((uint)e.OldValue, (uint)e.NewValue);
+                                target.OnModifierKeysChanged((uint)e.OldValue, (uint)e.NewValue);
                              }   
                          }
                          partial void OnTriggerKeysChanged(uint oldKeys, uint newKeys);
@@ -141,9 +142,57 @@ namespace FastHotKeyForWPF.Generator
 
                          public void Covered()
                          {
+                             Text = string.Empty;
+                             modifiers.Clear();
+                             triggers.Clear();
+                             ModifierKeys = 0x0000;
+                             TriggerKeys = 0x0000;
+
                              OnCovered();
                          }
                          partial void OnCovered();
+
+                         private HashSet<ModifierKeys> modifiers = [];
+                         private HashSet<TriggerKeys> triggers = [];
+
+                         public string Text
+                         {
+                             get { return (string)GetValue(TextProperty); }
+                             protected set { SetValue(TextProperty, value); }
+                         }
+                         public static readonly DependencyProperty TextProperty =
+                             DependencyProperty.Register("Text", typeof(string), typeof({{Syntax.Identifier.Text}}), new PropertyMetadata(string.Empty));
+
+                         protected virtual void OnHotKeyReceived(object sender, System.Windows.Input.KeyEventArgs e)
+                         {
+                             var key = (e.Key == System.Windows.Input.Key.System ? e.SystemKey : e.Key);
+                             if (GlobalHotKey.KeyToModifierWinApiMapping.TryGetValue(key, out var modifier))
+                             {
+                                 if (!modifiers.Remove(modifier))
+                                 {
+                                     modifiers.Add(modifier);
+                                 }
+                             }
+                             else if (GlobalHotKey.KeyToTriggerWinApiMapping.TryGetValue(key, out var trigger))
+                             {
+                                 if (!triggers.Remove(trigger))
+                                 {
+                                     triggers.Add(trigger);
+                                 }
+                             }
+
+                             e.Handled = true;
+                             UpdateValue();
+                             OnHotKeyUpdated();
+                         }
+
+                         protected virtual void UpdateValue()
+                         {
+                             ModifierKeys = modifiers.GetUint();
+                             TriggerKeys = triggers.GetUint();
+                             Text = string.Join(" + ", [.. modifiers.GetNames(), .. triggers.GetNames()]);
+                         }
+                         partial void OnHotKeyUpdated();
                    """;
         }
         public string GenerateEnd()
