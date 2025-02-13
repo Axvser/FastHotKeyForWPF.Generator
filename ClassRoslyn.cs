@@ -58,6 +58,7 @@ namespace FastHotKeyForWPF.Generator
             sourceBuilder.AppendLine();
             var hashUsings = GetReferencedNamespaces(Symbol);
             hashUsings.Add("using FastHotKeyForWPF;");
+            hashUsings.Add("using System.Windows;");
             foreach (var use in hashUsings)
             {
                 sourceBuilder.AppendLine(use);
@@ -84,74 +85,65 @@ namespace FastHotKeyForWPF.Generator
         public string GenerateHorKeyComponent()
         {
             return $$"""
-                   public int HotKeyID
-                   {
-                       get { return (int)GetValue(HotKeyIDProperty); }
-                       set { SetValue(HotKeyIDProperty, value); }
-                   }
-                   public static readonly DependencyProperty HotKeyIDProperty =
-                       DependencyProperty.Register("HotKeyID", typeof(int), typeof({{Syntax.Identifier.Text}}), new PropertyMetadata(-1));
+                         public uint ModifierKeys
+                         {
+                             get { return (uint)GetValue(ModifierKeysProperty); }
+                             set { SetValue(ModifierKeysProperty, value); }
+                         }
+                         public static readonly DependencyProperty ModifierKeysProperty =
+                             DependencyProperty.Register("ModifierKeys", typeof(uint), typeof({{Syntax.Identifier.Text}}), new PropertyMetadata(default(uint), Inner_OnModifierKeysChanged));
+                         public static void Inner_OnModifierKeysChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+                         {
+                             if(d is {{Syntax.Identifier.Text}} target)
+                             {
+                                GlobalHotKey.Unregister((uint)e.OldValue,target.TriggerKeys);
+                                GlobalHotKey.Register(target);
+                                target.OnModifierKeysChanged((uint)e.OldValue, (uint)e.NewValue);
+                             }                            
+                         }
+                         partial void OnModifierKeysChanged(uint oldKeys, uint newKeys);
 
-                   public virtual uint ModifierKeys
-                   {
-                       get { return (uint)GetValue(ModifierKeysProperty); }
-                       set { SetValue(ModifierKeysProperty, value); }
-                   }
-                   public static readonly DependencyProperty ModifierKeysProperty =
-                       DependencyProperty.Register("ModifierKeys", typeof(uint), typeof({{Syntax.Identifier.Text}}), new PropertyMetadata(new uint(), Inner_OnModifierKeysChanged));
-                   public static void Inner_OnModifierKeysChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-                   {
-                       var target = ({{Syntax.Identifier.Text}})d;
-                       target?.OnModifierKeysChanged((uint)e.OldValue, (uint)e.NewValue);
-                   }
-                   partial void OnModifierKeysChanged(uint oldKeys, uint newKeys);
+                         public uint TriggerKeys
+                         {
+                             get { return (uint)GetValue(TriggerKeysProperty); }
+                             set { SetValue(TriggerKeysProperty, value); }
+                         }
+                         public static readonly DependencyProperty TriggerKeysProperty =
+                             DependencyProperty.Register("TriggerKeys", typeof(uint), typeof({{Syntax.Identifier.Text}}), new PropertyMetadata(default(uint), Inner_OnTriggerKeysChanged));
+                         public static void Inner_OnTriggerKeysChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+                         {
+                             if(d is {{Syntax.Identifier.Text}} target)
+                             {
+                                GlobalHotKey.Unregister(target.ModifierKeys,(uint)e.OldValue);
+                                GlobalHotKey.Register(target);
+                                target.OnTriggerKeysChanged((uint)e.OldValue, (uint)e.NewValue);
+                             }   
+                         }
+                         partial void OnTriggerKeysChanged(uint oldKeys, uint newKeys);
 
-                   public virtual uint TriggerKeys
-                   {
-                       get { return (uint)GetValue(TriggerKeysProperty); }
-                       set { SetValue(TriggerKeysProperty, value); }
-                   }
-                   public static readonly DependencyProperty TriggerKeysProperty =
-                       DependencyProperty.Register("TriggerKeys", typeof(uint), typeof({{Syntax.Identifier.Text}}), new PropertyMetadata(new uint(), Inner_OnTriggerKeysChanged));
-                   public static void Inner_OnTriggerKeysChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-                   {
-                       var target = ({{Syntax.Identifier.Text}})d;
-                       target?.OnTriggerKeysChanged((uint)e.OldValue, (uint)e.NewValue);
-                   }
-                   partial void OnTriggerKeysChanged(uint oldKeys, uint newKeys);
+                         private event HotKeyEventHandler? handlers;
+                         public event HotKeyEventHandler Handler
+                         {
+                             add { handlers += value; }
+                             remove { handlers -= value; }
+                         }
 
-                   private event HotKeyEventHandler? handlers;
-                   public virtual event HotKeyEventHandler Handler
-                   {
-                       add { handlers += value; }
-                       remove { handlers -= value; }
-                   }
+                         public void Invoke()
+                         {
+                             OnHotKeyInvoking();
 
-                   public void Invoke()
-                   {
-                       OnHotKeyInvoking();
+                             handlers?.Invoke(this, new HotKeyEventArgs(ModifierKeys,TriggerKeys));
 
-                       handlers?.Invoke(this, new HotKeyEventArgs(HotKeyID));
+                             OnHotKeyInvoked();
+                         }
+                         partial void OnHotKeyInvoking();
+                         partial void OnHotKeyInvoked();
 
-                       OnHotKeyInvoked();
-                   }
-                   partial void OnHotKeyInvoking();
-                   partial void OnHotKeyInvoked();
-
-                   public void Reset()
-                   {
-                       var events = handlers?.GetInvocationList().OfType<HotKeyEventHandler>() ?? [];
-                       OnReseting(events);
-
-                       foreach (var item in events)
-                       {
-                           handlers -= item;
-                       }
-
-                       OnReseted(events);
-                   }
-                   partial void OnReseting(IEnumerable<HotKeyEventHandler> handlers);
-                   partial void OnReseted(IEnumerable<HotKeyEventHandler> handlers);
+                         public void Covered()
+                         {
+                             OnCovered();
+                         }
+                         partial void OnCovered();
                    """;
         }
         public string GenerateEnd()

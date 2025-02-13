@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace FastHotKeyForWPF.Generator
+namespace FastHotKeyForWPF.Generator.ComponentGenerator
 {
     [Generator]
     public class HotKeyManager : IIncrementalGenerator
@@ -46,10 +46,7 @@ namespace FastHotKeyForWPF.Generator
             {
                 SemanticModel model = compilation.GetSemanticModel(classDeclaration.SyntaxTree);
                 var classSymbol = model.GetDeclaredSymbol(classDeclaration);
-                if (classSymbol == null || !classSymbol.GetMembers()
-                        .Any(member => member.GetAttributes()
-                        .Any(att => att.AttributeClass?.AllInterfaces
-                        .Any(i => i.Name == "IHotKeyComponentAttribute") ?? false)))
+                if (classSymbol == null || !classSymbol.GetAttributes().Any(att => att.AttributeClass?.Name == "HotKeyComponentAttribute"))
                     continue;
 
                 if (!generatedSources.TryGetValue(Tuple.Create(classSymbol, classDeclaration), out var sourceBuilder))
