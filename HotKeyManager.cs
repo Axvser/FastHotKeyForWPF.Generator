@@ -62,7 +62,7 @@ namespace FastHotKeyForWPF.Generator
                     sourceBuilder.AppendLine(classRoslyn.GenerateNamespace());
                     sourceBuilder.AppendLine(classRoslyn.GeneratePartialClass());
 
-
+                    sourceBuilder.AppendLine(classRoslyn.GenerateHorKeyComponent());
 
                     sourceBuilder.AppendLine(classRoslyn.GenerateEnd());
                     generatedSources[Tuple.Create(classSymbol, classDeclaration)] = sourceBuilder;
