@@ -86,36 +86,36 @@ namespace FastHotKeyForWPF.Generator
         public string GenerateHorKeyComponent()
         {
             return $$"""
-                         public uint ModifierKeys
+                         public uint VirtualModifiers
                          {
                              get { return (uint)GetValue(ModifierKeysProperty); }
                              set { SetValue(ModifierKeysProperty, value); }
                          }
                          public static readonly DependencyProperty ModifierKeysProperty =
-                             DependencyProperty.Register("ModifierKeys", typeof(uint), typeof({{Syntax.Identifier.Text}}), new PropertyMetadata(default(uint), Inner_OnModifierKeysChanged));
+                             DependencyProperty.Register("VirtualModifiers", typeof(uint), typeof({{Syntax.Identifier.Text}}), new PropertyMetadata(default(uint), Inner_OnModifierKeysChanged));
                          public static void Inner_OnModifierKeysChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
                          {
                              if(d is {{Syntax.Identifier.Text}} target)
                              {
-                                GlobalHotKey.Unregister((uint)e.OldValue,target.TriggerKeys);
+                                GlobalHotKey.Unregister((uint)e.OldValue,target.VirtualKeys);
                                 GlobalHotKey.Register(target);
                                 target.OnModifierKeysChanged((uint)e.OldValue, (uint)e.NewValue);
                              }                            
                          }
                          partial void OnModifierKeysChanged(uint oldKeys, uint newKeys);
 
-                         public uint TriggerKeys
+                         public uint VirtualKeys
                          {
                              get { return (uint)GetValue(TriggerKeysProperty); }
                              set { SetValue(TriggerKeysProperty, value); }
                          }
                          public static readonly DependencyProperty TriggerKeysProperty =
-                             DependencyProperty.Register("TriggerKeys", typeof(uint), typeof({{Syntax.Identifier.Text}}), new PropertyMetadata(default(uint), Inner_OnTriggerKeysChanged));
+                             DependencyProperty.Register("VirtualKeys", typeof(uint), typeof({{Syntax.Identifier.Text}}), new PropertyMetadata(default(uint), Inner_OnTriggerKeysChanged));
                          public static void Inner_OnTriggerKeysChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
                          {
                              if(d is {{Syntax.Identifier.Text}} target)
                              {
-                                GlobalHotKey.Unregister(target.ModifierKeys,(uint)e.OldValue);
+                                GlobalHotKey.Unregister(target.VirtualModifiers,(uint)e.OldValue);
                                 GlobalHotKey.Register(target);
                                 target.OnModifierKeysChanged((uint)e.OldValue, (uint)e.NewValue);
                              }   
@@ -133,7 +133,7 @@ namespace FastHotKeyForWPF.Generator
                          {
                              OnHotKeyInvoking();
 
-                             handlers?.Invoke(this, new HotKeyEventArgs(ModifierKeys,TriggerKeys));
+                             handlers?.Invoke(this, new HotKeyEventArgs(VirtualModifiers,VirtualKeys));
 
                              OnHotKeyInvoked();
                          }
@@ -145,15 +145,15 @@ namespace FastHotKeyForWPF.Generator
                              Text = string.Empty;
                              modifiers.Clear();
                              triggers.Clear();
-                             ModifierKeys = 0x0000;
-                             TriggerKeys = 0x0000;
+                             VirtualModifiers = 0x0000;
+                             VirtualKeys = 0x0000;
 
                              OnCovered();
                          }
                          partial void OnCovered();
 
-                         private HashSet<ModifierKeys> modifiers = [];
-                         private HashSet<TriggerKeys> triggers = [];
+                         private HashSet<VirtualModifiers> modifiers = [];
+                         private HashSet<VirtualKeys> triggers = [];
 
                          public string Text
                          {
@@ -166,14 +166,14 @@ namespace FastHotKeyForWPF.Generator
                          protected virtual void OnHotKeyReceived(object sender, System.Windows.Input.KeyEventArgs e)
                          {
                              var key = (e.Key == System.Windows.Input.Key.System ? e.SystemKey : e.Key);
-                             if (GlobalHotKey.KeyToModifierWinApiMapping.TryGetValue(key, out var modifier))
+                             if (GlobalHotKey.WinApiModifiersMapping.TryGetValue(key, out var modifier))
                              {
                                  if (!modifiers.Remove(modifier))
                                  {
                                      modifiers.Add(modifier);
                                  }
                              }
-                             else if (GlobalHotKey.KeyToTriggerWinApiMapping.TryGetValue(key, out var trigger))
+                             else if (GlobalHotKey.WinApiKeysMapping.TryGetValue(key, out var trigger))
                              {
                                  if (!triggers.Remove(trigger))
                                  {
@@ -188,8 +188,8 @@ namespace FastHotKeyForWPF.Generator
 
                          protected virtual void UpdateValue()
                          {
-                             ModifierKeys = modifiers.GetUint();
-                             TriggerKeys = triggers.GetUint();
+                             VirtualModifiers = modifiers.GetUint();
+                             VirtualKeys = triggers.GetUint();
                              Text = string.Join(" + ", [.. modifiers.GetNames(), .. triggers.GetNames()]);
                          }
                          partial void OnHotKeyUpdated();
