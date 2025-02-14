@@ -213,15 +213,15 @@ namespace FastHotKeyForWPF.Generator
                          /// </summary>
                          protected virtual void OnHotKeyReceived(object sender, System.Windows.Input.KeyEventArgs e)
                          {
-                             var key = (e.Key == System.Windows.Input.Key.System ? e.SystemKey : e.Key);
-                             if (GlobalHotKey.WinApiModifiersMapping.TryGetValue(key, out var modifier))
+                             var input = (e.Key == System.Windows.Input.Key.System ? e.SystemKey : e.Key);
+                             if (GlobalHotKey.WinApiModifiersMapping.TryGetValue(input, out var modifier))
                              {
                                  if (!modifiers.Remove(modifier))
                                  {
                                      modifiers.Add(modifier);
                                  }
                              }
-                             else if (GlobalHotKey.WinApiKeysMapping.TryGetValue(key, out var trigger))
+                             else if (GlobalHotKey.WinApiKeysMapping.TryGetValue(input, out var trigger))
                              {
                                  key = trigger;
                              }
