@@ -129,7 +129,7 @@ namespace FastHotKeyForWPF.Generator
                                 GlobalHotKey.Unregister(target.VirtualModifiers,(uint)e.OldValue);
                                 GlobalHotKey.Register(target);
                                 target.OnKeysChanged((uint)e.OldValue, (uint)e.NewValue);
-                             }   
+                             }
                          }
                          /// <summary>
                          /// [ Source Generator ] Optionally extend the logic where the key has been modified
@@ -192,13 +192,13 @@ namespace FastHotKeyForWPF.Generator
                          partial void OnCovered();
 
                          private HashSet<VirtualModifiers> modifiers = [];
-                         private HashSet<VirtualKeys> triggers = [];
+                         private VirtualKeys key = 0x0000;
 
                          /// <summary>
                          /// [ Source Generator ] By default, the plus sign is used to connect key characters, which is usually updated automatically for data binding purposes
                          /// <para>The origin of the character :</para>
                          /// <para>HashSet&lt;VirtualModifiers> modifiers</para>
-                         /// <para>HashSet&lt;VirtualKeys> triggers</para>
+                         /// <para>VirtualKeys key</para>
                          /// </summary>
                          public string Text
                          {
@@ -223,10 +223,7 @@ namespace FastHotKeyForWPF.Generator
                              }
                              else if (GlobalHotKey.WinApiKeysMapping.TryGetValue(key, out var trigger))
                              {
-                                 if (!triggers.Remove(trigger))
-                                 {
-                                     triggers.Add(trigger);
-                                 }
+                                 key = trigger;
                              }
 
                              e.Handled = true;
@@ -240,7 +237,7 @@ namespace FastHotKeyForWPF.Generator
                          {
                              OnHotKeyUpdating();
                              VirtualModifiers = modifiers.GetUint();
-                             VirtualKeys = triggers.GetUint();
+                             VirtualKeys = (uint)key;
                              Text = string.Join(" + ", [.. modifiers.GetNames(), .. triggers.GetNames()]);
                              OnHotKeyUpdated();
                          }
