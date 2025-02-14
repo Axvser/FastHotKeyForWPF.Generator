@@ -176,7 +176,7 @@ namespace FastHotKeyForWPF.Generator
 
                              Text = string.Empty;
                              modifiers.Clear();
-                             triggers.Clear();
+                             key = 0x0000;
                              VirtualModifiers = 0x0000;
                              VirtualKeys = 0x0000;
 
@@ -238,7 +238,7 @@ namespace FastHotKeyForWPF.Generator
                              OnHotKeyUpdating();
                              VirtualModifiers = modifiers.GetUint();
                              VirtualKeys = (uint)key;
-                             Text = string.Join(" + ", [.. modifiers.GetNames(), .. triggers.GetNames()]);
+                             Text = string.Join(" + ", [.. modifiers.GetNames(), key.ToString()]);
                              OnHotKeyUpdated();
                          }
                          /// <summary>
