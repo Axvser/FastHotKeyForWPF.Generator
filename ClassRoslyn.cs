@@ -86,50 +86,71 @@ namespace FastHotKeyForWPF.Generator
         public string GenerateHorKeyComponent()
         {
             return $$"""
+                         /// <summary>
+                         /// [ Source Generator ] one of the builders of hotkey
+                         /// <para>Low level : Modifying this item will immediately register or modify the hotkey without updating the UI</para>
+                         /// </summary>
                          public uint VirtualModifiers
                          {
-                             get { return (uint)GetValue(ModifierKeysProperty); }
-                             set { SetValue(ModifierKeysProperty, value); }
+                             get { return (uint)GetValue(VirtualModifiersProperty); }
+                             set { SetValue(VirtualModifiersProperty, value); }
                          }
-                         public static readonly DependencyProperty ModifierKeysProperty =
-                             DependencyProperty.Register("VirtualModifiers", typeof(uint), typeof({{Syntax.Identifier.Text}}), new PropertyMetadata(default(uint), Inner_OnModifierKeysChanged));
-                         public static void Inner_OnModifierKeysChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+                         public static readonly DependencyProperty VirtualModifiersProperty =
+                             DependencyProperty.Register("VirtualModifiers", typeof(uint), typeof({{Syntax.Identifier.Text}}), new PropertyMetadata(default(uint), Inner_OnModifiersChanged));
+                         public static void Inner_OnModifiersChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
                          {
                              if(d is {{Syntax.Identifier.Text}} target)
                              {
                                 GlobalHotKey.Unregister((uint)e.OldValue,target.VirtualKeys);
                                 GlobalHotKey.Register(target);
-                                target.OnModifierKeysChanged((uint)e.OldValue, (uint)e.NewValue);
+                                target.OnModifiersChanged((uint)e.OldValue, (uint)e.NewValue);
                              }                            
                          }
-                         partial void OnModifierKeysChanged(uint oldKeys, uint newKeys);
+                         /// <summary>
+                         /// [ Source Generator ] Optionally extend the logic where the key has been modified
+                         /// </summary>
+                         partial void OnModifiersChanged(uint oldKeys, uint newKeys);
 
+                         /// <summary>
+                         /// [ Source Generator ] one of the builders of hotkey
+                         /// <para>Low level : Modifying this item will immediately register or modify the hotkey without updating the UI</para>
+                         /// </summary>
                          public uint VirtualKeys
                          {
-                             get { return (uint)GetValue(TriggerKeysProperty); }
-                             set { SetValue(TriggerKeysProperty, value); }
+                             get { return (uint)GetValue(VirtualKeysProperty); }
+                             set { SetValue(VirtualKeysProperty, value); }
                          }
-                         public static readonly DependencyProperty TriggerKeysProperty =
-                             DependencyProperty.Register("VirtualKeys", typeof(uint), typeof({{Syntax.Identifier.Text}}), new PropertyMetadata(default(uint), Inner_OnTriggerKeysChanged));
-                         public static void Inner_OnTriggerKeysChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+                         public static readonly DependencyProperty VirtualKeysProperty =
+                             DependencyProperty.Register("VirtualKeys", typeof(uint), typeof({{Syntax.Identifier.Text}}), new PropertyMetadata(default(uint), Inner_OnKeysChanged));
+                         public static void Inner_OnKeysChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
                          {
                              if(d is {{Syntax.Identifier.Text}} target)
                              {
                                 GlobalHotKey.Unregister(target.VirtualModifiers,(uint)e.OldValue);
                                 GlobalHotKey.Register(target);
-                                target.OnModifierKeysChanged((uint)e.OldValue, (uint)e.NewValue);
+                                target.OnKeysChanged((uint)e.OldValue, (uint)e.NewValue);
                              }   
                          }
-                         partial void OnTriggerKeysChanged(uint oldKeys, uint newKeys);
+                         /// <summary>
+                         /// [ Source Generator ] Optionally extend the logic where the key has been modified
+                         /// </summary>
+                         partial void OnKeysChanged(uint oldKeys, uint newKeys);
 
                          private event HotKeyEventHandler? handlers;
+
+                         /// <summary>
+                         /// [ Source Generator ] This event is executed when the hotkey is triggered
+                         /// </summary>
                          public event HotKeyEventHandler Handler
                          {
                              add { handlers += value; }
                              remove { handlers -= value; }
                          }
 
-                         public void Invoke()
+                         /// <summary>
+                         /// [ Source Generator ] How to call hotkey handling events
+                         /// </summary>
+                         public virtual void Invoke()
                          {
                              OnHotKeyInvoking();
 
@@ -137,11 +158,22 @@ namespace FastHotKeyForWPF.Generator
 
                              OnHotKeyInvoked();
                          }
+                         /// <summary>
+                         /// [ Source Generator ] Before the hotkey event is triggered
+                         /// </summary>
                          partial void OnHotKeyInvoking();
+                         /// <summary>
+                         /// [ Source Generator ] After the hotkey event is triggered
+                         /// </summary>
                          partial void OnHotKeyInvoked();
 
-                         public void Covered()
+                         /// <summary>
+                         /// [ Source Generator ] If the key combination duplicates this instance when a hotkey is registered elsewhere, this instance is overwritten
+                         /// </summary>
+                         public virtual void Covered()
                          {
+                             OnCovering();
+
                              Text = string.Empty;
                              modifiers.Clear();
                              triggers.Clear();
@@ -150,11 +182,24 @@ namespace FastHotKeyForWPF.Generator
 
                              OnCovered();
                          }
+                         /// <summary>
+                         /// [ Source Generator ] Before the component is covered
+                         /// </summary>
+                         partial void OnCovering();
+                         /// <summary>
+                         /// [ Source Generator ] After the component is covered
+                         /// </summary>
                          partial void OnCovered();
 
                          private HashSet<VirtualModifiers> modifiers = [];
                          private HashSet<VirtualKeys> triggers = [];
 
+                         /// <summary>
+                         /// [ Source Generator ] By default, the plus sign is used to connect key characters, which is usually updated automatically for data binding purposes
+                         /// <para>The origin of the character :</para>
+                         /// <para>HashSet&lt;VirtualModifiers> modifiers</para>
+                         /// <para>HashSet&lt;VirtualKeys> triggers</para>
+                         /// </summary>
                          public string Text
                          {
                              get { return (string)GetValue(TextProperty); }
@@ -163,6 +208,9 @@ namespace FastHotKeyForWPF.Generator
                          public static readonly DependencyProperty TextProperty =
                              DependencyProperty.Register("Text", typeof(string), typeof({{Syntax.Identifier.Text}}), new PropertyMetadata(string.Empty));
 
+                         /// <summary>
+                         /// [ Source Generator ] Handles WPF user keyboard events for binding. It will update the UI
+                         /// </summary>
                          protected virtual void OnHotKeyReceived(object sender, System.Windows.Input.KeyEventArgs e)
                          {
                              var key = (e.Key == System.Windows.Input.Key.System ? e.SystemKey : e.Key);
@@ -182,16 +230,27 @@ namespace FastHotKeyForWPF.Generator
                              }
 
                              e.Handled = true;
-                             UpdateValue();
-                             OnHotKeyUpdated();
+                             UpdateHotKey();
                          }
 
-                         protected virtual void UpdateValue()
+                         /// <summary>
+                         /// [ Source Generator ] This is executed when the user's keyboard has been processed
+                         /// </summary>
+                         protected virtual void UpdateHotKey()
                          {
+                             OnHotKeyUpdating();
                              VirtualModifiers = modifiers.GetUint();
                              VirtualKeys = triggers.GetUint();
                              Text = string.Join(" + ", [.. modifiers.GetNames(), .. triggers.GetNames()]);
+                             OnHotKeyUpdated();
                          }
+                         /// <summary>
+                         /// [ Source Generator ] Before the hotkey is updated
+                         /// </summary>
+                         partial void OnHotKeyUpdating();
+                         /// <summary>
+                         /// [ Source Generator ] After the hotkey is updated
+                         /// </summary>
                          partial void OnHotKeyUpdated();
                    """;
         }
