@@ -86,6 +86,36 @@ namespace FastHotKeyForWPF.Generator
         public string GenerateHorKeyComponent()
         {
             return $$"""
+                         private bool _isregistered = false;
+                         /// <summary>
+                         /// [ Source Generator ] Indicates whether the hotkey is currently successfully registered
+                         /// </summary>
+                         public virtual bool IsRegistered
+                         {
+                             get => _isregistered;
+                             protected set
+                             {
+                                _isregistered = value;
+
+                                if(value)
+                                {
+                                   OnSuccess();
+                                }
+                                else
+                                {
+                                   OnFailed();
+                                }
+                             }
+                         }
+                         /// <summary>
+                         /// [ Source Generator ] Triggered on successful registration
+                         /// </summary>
+                         partial void OnFailed();
+                         /// <summary>
+                         /// [ Source Generator ] Triggered on failed registration
+                         /// </summary>
+                         partial void OnSuccess();
+
                          /// <summary>
                          /// [ Source Generator ] one of the builders of hotkey
                          /// <para>Low level : Modifying this item will immediately register or modify the hotkey without updating the UI</para>
@@ -102,7 +132,8 @@ namespace FastHotKeyForWPF.Generator
                              if(d is {{Syntax.Identifier.Text}} target)
                              {
                                 GlobalHotKey.Unregister((uint)e.OldValue,target.VirtualKeys);
-                                GlobalHotKey.Register(target);
+                                var id = GlobalHotKey.Register(target);
+                                target.IsRegistered = id != 0 && id != -1;
                                 target.OnModifiersChanged((uint)e.OldValue, (uint)e.NewValue);
                              }                            
                          }
@@ -127,7 +158,8 @@ namespace FastHotKeyForWPF.Generator
                              if(d is {{Syntax.Identifier.Text}} target)
                              {
                                 GlobalHotKey.Unregister(target.VirtualModifiers,(uint)e.OldValue);
-                                GlobalHotKey.Register(target);
+                                var id = GlobalHotKey.Register(target);
+                                target.IsRegistered = id != 0 && id != -1;
                                 target.OnKeysChanged((uint)e.OldValue, (uint)e.NewValue);
                              }
                          }
@@ -214,14 +246,14 @@ namespace FastHotKeyForWPF.Generator
                          protected virtual void OnHotKeyReceived(object sender, System.Windows.Input.KeyEventArgs e)
                          {
                              var input = (e.Key == System.Windows.Input.Key.System ? e.SystemKey : e.Key);
-                             if (GlobalHotKey.WinApiModifiersMapping.TryGetValue(input, out var modifier))
+                             if (KeyHelper.WinApiModifiersMapping.TryGetValue(input, out var modifier))
                              {
                                  if (!modifiers.Remove(modifier))
                                  {
                                      modifiers.Add(modifier);
                                  }
                              }
-                             else if (GlobalHotKey.WinApiKeysMapping.TryGetValue(input, out var trigger))
+                             else if (KeyHelper.WinApiKeysMapping.TryGetValue(input, out var trigger))
                              {
                                  key = trigger;
                              }
