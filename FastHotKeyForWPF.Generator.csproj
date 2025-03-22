@@ -13,14 +13,28 @@
 		<Authors>Axvser</Authors>
 		<RepositoryUrl>https://github.com/Axvser/FastHotKeyForWPF.Generator</RepositoryUrl>
 		<PackageProjectUrl>https://github.com/Axvser/FastHotKeyForWPF.Generator</PackageProjectUrl>
+		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <None Remove="LICENSE.txt" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="true" />
+		<None Include="..\FastHotKeyForWPF\LICENSE.txt">
+		  <Pack>True</Pack>
+		  <PackagePath>\</PackagePath>
+		</None>
 	</ItemGroup>
 
 	<ItemGroup>
 	  <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.13.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Resource Include="LICENSE.txt" />
 	</ItemGroup>
 	
 </Project>
