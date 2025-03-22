@@ -10,7 +10,7 @@ using System.Text;
 
 namespace FastHotKeyForWPF.Generator.ComponentGenerator
 {
-    [Generator]
+    [Generator(LanguageNames.CSharp)]
     public class HotKeyManager : IIncrementalGenerator
     {
         public void Initialize(IncrementalGeneratorInitializationContext context)
